@@ -1,0 +1,100 @@
+#Burp 
+
+#Trusting cer
+Firefox browser --> http://burp --> CA Certificate
+Firefox --> settings --> certificates --> Import --> Websites only
+
+-------------------------Burp Main Tabs------------------------------------------------------------------
+#Target - Tree view of all domains, defines scope of testing
+#Proxy - Interceptor, HTTP history, Websockets history
+#Scanner (Pro edition)
+#Intruder - Large number of requests via positions and payloads
+#Repeater - repeat requests to test for bugs
+#Sequencer - capture load or set of tokens and test for flaws
+#Decoder - decode and encode data as b64, hex, etc
+#Comparer - compare blocks of data
+#Extender
+#Project options
+#User options
+#Alerts
+
+-------------------------Target tab----------------------------------------------------------------------
+#Site Map loaded by passive Burp spider
+Gray items - spider found ref to page but no requests to it yet
+Target --> Site Map --> Side click branch --> Add to scope --> yes
+
+#Scope
+Shows what domains are in scope (can be added via site map branch or manually in Scope)
+
+-------------------------Proxy tab-----------------------------------------------------------------------
+#Interceptor
+See all req and resp and manipulate
+Proxy --> Interecpt --> Intercept On --> Modify Raw --> Forward		//Manipulate headers, data, etc
+
+#HTTP History
+All in-scope requests from proxy populate history tab
+Proxy --> HTTP History --> Filter: Hiding CSS, img...etc		//Filter by MIME type & file ext 
+Each page contains URL, method and Request and response below
+Proxy --> HTTP History --> Side click Page --> Send to Repeater		//Send req to rptr for modif
+Proxy --> HTTP History --> Side click Page --> Send to Comparer		//Send req to comparer
+
+#Options
+Proxy --> Options --> Intercept Client Requests/Responses 	//Ctrl which req and resp to intercept
+Proxy --> Options --> Intercept Client Req/Resp --> And URL is in tgt scope 	//limit int to scope
+Proxy --> Options --> Match and Replace				//Repl hdr & body data (disable JS etc)
+Proxy --> Options --> Resp Modification --> Unhide hidden form fields	//show hidden fields like csrf
+
+
+-------------------------Intruder tab--------------------------------------------------------------------
+By default, cookies, queries, post paramters automatically targetted
+Proxy --> HTTP History --> Side click Page --> Send to Intruder		//Send req to Intruder f/ mod
+
+#Payload marker selection
+Intrdr --> Positions --> Clear markers --> Highlight desired marker --> Add
+
+#Payload Positions (Intruder --> Positions)
+Intruder --> Positions --> Attack Type --> Sniper	//single payload tried in each postn separately
+Intruder --> Positions --> Attack Type --> Btring Ram	//each payload tried in every position at once
+Intruder --> Positions --> Attack Type --> Pitchfork	//payload set1 applied to posit1, set2:posit2
+Intruder --> Positions --> Attack Type --> Cluster Bomb		//iterates all payload combos
+
+#Payloads
+Intruder --> Payloads --> Payload Opts --> Add	//Add payloads as simple list (def)
+Intruder --> Payloads --> Payld Types --> Numbs		//Change payload type to numbers
+Intruder --> Payloads --> Payload Opts --> Numb Rnge From/To	--> Numb Fmt Min/Max int digits	//Numlist
+Intruder --> Payloads --> Payld Types --> Runtime File		//Change payload type to runtime file
+Intruder --> Payloads --> Payld Types --> Brute Forcer		//Change payload type to Brute Force
+Start Attack --> Filter --> 'User+Does+Not+Exist' --> Neg Search	//Parse Results for neg of known
+
+#Options
+Intruder --> Opts --> Redirections --> In-Scope Only	//Accts for HTTP 302 found msg indicating redir
+Intruder --> Opts --> Grep-Extract --> Enable --> Add --> Click value	//Extrct results simplif analysis
+
+#SQLI example, if notice site susceptible to SQLI
+Username --> admin' AND password like 'f%%'AND 1='1
+Send to Intruder
+Make F marker
+brute forcer intruder attack, org by smallest length and see if differences
+Add correct letter in front of marker, re-attack (f moving to right each time) until each letter revealed
+
+-------------------------Repeater tab--------------------------------------------------------------------
+Execute HTTP requests and view response
+Usually going to repeater directly is NOT done
+Proxy --> HTTP History --> Side click Page --> Send to Repeater			//Send req to rptr f/ mod
+Rptr --> Raw --> Highlight code --> side cl --> convert sel --> URL --> URL-encode	//url-encode!
+
+-------------------------Comparer tab--------------------------------------------------------------------
+#Compare byte by byte
+#Compare by words
+Proxy --> HTTP History --> Side click Page --> Send to Comparer		//Send req to comparer
+
+-------------------------Project Options tab-------------------------------------------------------------
+#Session Handling in Burp (CSRF errors)
+#Macros
+Proj Opts --> Sess --> Macros --> Add --> Macro Recorder
+Mac Recr --> Sel req giving CSRF token --> user_token in OrigResp pane	//Get CSRF token f/ login req
+Sel req giving CSRF token --> OK --> Macro Editor --> Test macro	//Test value changes
+#Session Handling Rules for HTTP requests
+Proj Opts --> Sess --> Sess Hand Rules --> Sess Handl Rule Edtr
+Sess Handl Rule Edtr --> Add --> Rule Desc --> Add --> Run Macro --> Sess Handl Act Edtr //Run macro
+Sess Handl Act Edtr --> OK --> Scope --> Use Adv Scope Ctrl --> Add --> IP	//limit scope
